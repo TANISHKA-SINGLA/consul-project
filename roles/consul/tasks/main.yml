@@ -1,0 +1,44 @@
+---
+# tasks file for roles/consul
+- name: Create consul user
+  user:
+    name: "{{ consul_user }}"
+    system: yes
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ consul_user }}"
+    group: "{{ consul_group }}"
+  loop:
+    - "{{ consul_data_dir }}"
+    - "{{ consul_config_dir }}"
+
+- name: Download Consul
+  get_url:
+    url: "https://releases.hashicorp.com/consul/{{ consul_version }}/{{ consul_package[ansible_os_family] }}"
+    dest: /tmp/consul.zip
+
+- name: Unzip consul
+  unarchive:
+    src: /tmp/consul.zip
+    dest: /usr/local/bin
+    remote_src: yes
+
+- name: Consul configuration
+  template:
+    src: consul.hcl.j2
+    dest: "{{ consul_config_dir }}/consul.hcl"
+  notify: restart consul
+
+- name: Create consul systemd service
+  template:
+    src: consul.service.j2
+    dest: /etc/systemd/system/consul.service
+  notify:
+    - restart consul
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes

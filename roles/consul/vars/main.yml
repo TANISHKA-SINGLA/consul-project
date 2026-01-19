@@ -1,0 +1,5 @@
+---
+# vars file for roles/consul
+consul_package:
+  Debian: "consul_{{ consul_version }}_linux_amd64.zip"
+  RedHat: "consul_{{ consul_version }}_linux_amd64.zip"
