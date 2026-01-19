@@ -4,10 +4,14 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo "Ansible project already checked out"
-                sh 'ls -la'
+                echo "Ansible project checked out by Jenkins"
+                sh '''
+                pwd
+                ls -la
+                '''
             }
         }
 
@@ -17,32 +21,24 @@ pipeline {
             }
         }
 
-        stage('Ansible Execution') {
-            steps {
-                sh '''
-                pwd
-                ls -la
-                ansible-playbook -i inventory.ini playbook.yml
-                '''
-            }
-        }
-	stage('Deploy') {
+        stage('Deploy Consul') {
             steps {
                 ansiblePipeline(
                     inventory: 'inventory.ini',
                     playbook: 'playbook.yml'
                 )
             }
+        }
     }
 
     post {
-        failure {
-            slackSend channel: 'jenkins-alert',
-                      message: "❌ Consul deployment failed"
-        }
         success {
             slackSend channel: 'jenkins-alert',
                       message: "✅ Consul deployed successfully"
+        }
+        failure {
+            slackSend channel: 'jenkins-alert',
+                      message: "❌ Consul deployment failed"
         }
     }
 }
