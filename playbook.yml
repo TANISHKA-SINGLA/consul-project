@@ -1,5 +1,7 @@
 - name: Install and Configure Consul
-  hosts: all
-  become: yes
+  hosts: local
+  connection: local
+  become: true
+
   roles:
     - consul
